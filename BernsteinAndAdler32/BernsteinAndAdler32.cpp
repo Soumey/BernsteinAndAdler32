@@ -4,130 +4,171 @@
 #include <iostream>
 #include <string>
 #include <random>
-#include <unordered_set>
 #include <unordered_map>
+
 using namespace std;
 unsigned long BernsteinHash(string str);
 string generateString(int length);
 unsigned long Adler32(string str);
-void printRandomCollision(unordered_set<unsigned long>& collisionSet, unordered_map<unsigned long, string>& hashToStringMap);
 
 int main()
 {
+
     const int arraySize = 100000;
-    string* C1 = new string[arraySize];
-    string* C2 = new string[arraySize];
-   // long** C2ascii = new long*[arraySize];
-    long* C1HashedByBernstein = new long[arraySize];
-    long* C2HashedByBernstein = new long[arraySize];
-    long* C1HashedAdler32 = new long[arraySize];
-    long* C2HashedAdler32= new long[arraySize];
-    unordered_set<unsigned long> c1BernsteinHashes;
-    unordered_set<unsigned long> c1Adler32Hashes;
-    unordered_set<unsigned long> c2BernsteinHashes;
-    unordered_set<unsigned long> c2Adler32Hashes;
-    int c1BernsteinCollisionCount = 0;
-    int c1Adler32CollisionCount = 0;
-    int c2BernsteinCollisionCount = 0;
-    int c2Adler32CollisionCount = 0;
+    unordered_map<unsigned long, vector<string>> hashCollisions1;
+    unordered_map<unsigned long, vector<string>> hashCollisions2;
+    unordered_map<unsigned long, vector<string>> hashCollisions3;
+    unordered_map<unsigned long, vector<string>> hashCollisions4;
 
-    unordered_map<unsigned long, string> c1BernsteinHashToStringMap;
-    unordered_map<unsigned long, string> c1Adler32HashToStringMap;
-    unordered_map<unsigned long, string> c2BernsteinHashToStringMap;
-    unordered_map<unsigned long, string> c2Adler32HashToStringMap;
-
-    for (int i = 0; i < arraySize; i++)
-    {
-        C1[i] = generateString(8);
-        C2[i] = generateString(100);
-
-    }
-
-   /* for (int i = 0; i < 100000; i=i + 1000)
-    {
-        cout << "C1[" << i << "] = " << C1[i] << endl;
-        
-
-    }
-    for (int i = 0; i < 100000; i=i+1000)
-    {
-        cout << "C2[" << i << "] = " << C2[i] << endl;
-    }*/
-    for (int i = 0; i < arraySize;i++)
-    {
-        C1HashedByBernstein[i] = BernsteinHash(C1[i]);
-        C1HashedAdler32[i] = Adler32(C1[i]);
-        C2HashedByBernstein[i] = BernsteinHash(C2[i]);
-        C2HashedAdler32[i] = Adler32(C1[i]);
-
-        if (c1BernsteinHashes.count(C1HashedByBernstein[i]) > 0)
-        {
-            c1BernsteinCollisionCount++;
+    for (int i = 0; i < arraySize; i++) {
+        string generatedString = generateString(8);
+        string generatedString2 = generateString(100);
+        unsigned long hash = BernsteinHash(generatedString);
+        unsigned long hash2 = BernsteinHash(generatedString2);
+        unsigned long hash3 = Adler32(generatedString);
+        unsigned long hash4= Adler32(generatedString2);
+        //bernstein
+        if (hashCollisions1.find(hash) == hashCollisions1.end()) {
+            hashCollisions1[hash] = vector<string>{ generatedString };
         }
-        else
-        {
-            c1BernsteinHashes.insert(C1HashedByBernstein[i]);
-            c1BernsteinHashToStringMap[C1HashedByBernstein[i]] = C1[i];
+        else {
+            hashCollisions1[hash].push_back(generatedString);
         }
-
-        if (c1Adler32Hashes.count(C1HashedAdler32[i]) > 0)
-        {
-            c1Adler32CollisionCount++;
+        if (hashCollisions2.find(hash2) == hashCollisions2.end()) {
+            hashCollisions2[hash2] = vector<string>{ generatedString2 };
         }
-        else
-        {
-            c1Adler32Hashes.insert(C1HashedAdler32[i]);
-            c1Adler32HashToStringMap[C1HashedAdler32[i]] = C1[i];
+        else {
+            hashCollisions2[hash2].push_back(generatedString2);
         }
-
-        if (c2BernsteinHashes.count(C2HashedByBernstein[i]) > 0)
-        {
-            c2BernsteinCollisionCount++;
+        //adler32
+        if (hashCollisions3.find(hash3) == hashCollisions3.end()) {
+            hashCollisions3[hash3] = vector<string>{ generatedString };
         }
-        else
-        {
-            c2BernsteinHashes.insert(C2HashedByBernstein[i]);
-            c2BernsteinHashToStringMap[C2HashedByBernstein[i]] = C2[i];
+        else {
+            hashCollisions3[hash3].push_back(generatedString);
         }
-
-        if (c2Adler32Hashes.count(C2HashedAdler32[i]) > 0)
-        {
-            c2Adler32CollisionCount++;
+        if (hashCollisions4.find(hash4) == hashCollisions4.end()) {
+            hashCollisions4[hash4] = vector<string>{ generatedString2 };
         }
-        else
-        {
-            c2Adler32Hashes.insert(C2HashedAdler32[i]);
-            c2Adler32HashToStringMap[C2HashedAdler32[i]] = C2[i];
+        else {
+            hashCollisions4[hash4].push_back(generatedString2);
         }
 
     }
-  /*  for (int i = 0; i <= arraySize; i=i+1000)
-    {
-        cout << "C1HashedByBernstein[" << i+1 << "] = " << C1HashedByBernstein[i] << endl;
-        cout << "C1Adler32[" << i + 1 << "] = " << C1HashedAdler32[i] << endl;
+
+    int numCollisions = 0;
+    int numCollisions2 = 0;
+    for (const auto& entry : hashCollisions1) {
+        if (entry.second.size() > 1) {
+            numCollisions++;
+        }
     }
 
-    for (int i = 0; i < arraySize; i=i+1000)
-    {
-        cout << "C2HashedByBernstein[" << i+1 << "] = " << C2HashedByBernstein[i] << endl;
-        cout << "C2Adler32[" << i + 1 << "] = " << C2HashedAdler32[i] << endl;
-    }*/
-    cout << "C1 - Bernstein Hash Collisions: " << c1BernsteinCollisionCount << endl;
-    cout << "C1 - Adler-32 Hash Collisions: " << c1Adler32CollisionCount << endl;
-    cout << "C2 - Bernstein Hash Collisions: " << c2BernsteinCollisionCount << endl;
-    cout << "C2 - Adler-32 Hash Collisions: " << c2Adler32CollisionCount << endl;
+    for (const auto& entry : hashCollisions2) {
+        if (entry.second.size() > 1) {
+            numCollisions2++;
+        }
+    }
+    // Dane o ilosci kolizji Bernstein
+    cout << "Liczba kolizji dla stringow 8 elementowych przy użyciu Bernstein Hash: " << numCollisions << endl;
+    cout << "Liczba kolizji dla stringow 100 elementowych przy użyciu Bernstein Hash: " << numCollisions2 << endl<<endl;
+    // Losowa kolizja Bernstein
+    random_device rd;
+    mt19937 generator(rd());
+    uniform_int_distribution<int> distribution(0, numCollisions - 1);
 
-    printRandomCollision(c1BernsteinHashes, c1BernsteinHashToStringMap);
-    printRandomCollision(c1Adler32Hashes, c1Adler32HashToStringMap);
-    printRandomCollision(c2BernsteinHashes, c2BernsteinHashToStringMap);
-    printRandomCollision(c2Adler32Hashes, c2Adler32HashToStringMap);
-    
-    delete[] C1; 
-    delete[] C2; 
-    delete[] C1HashedByBernstein;
-    delete[] C2HashedByBernstein;
-    delete[] C1HashedAdler32;
-    delete[] C2HashedAdler32;
+    int randomIndex = distribution(generator);
+
+    uniform_int_distribution<int> distribution2(0, numCollisions2 - 1);
+    int randomIndex2 = distribution2(generator);
+
+    int currentCollisionIndex = 0;
+    int currentCollisionIndex2 = 0;
+
+    for (const auto& entry : hashCollisions1) {
+        if (entry.second.size() > 1) {
+            if (currentCollisionIndex == randomIndex) {
+                cout << "Losowa kolizja dla stringow 8 elementowych:" << endl;
+                cout << "Hash: " << entry.first << endl;
+                cout << "String:" << entry.second[1] << endl<<endl;
+               /* for (const auto& str : entry.second) {
+                    cout << str << endl;
+                }*/
+            }
+            currentCollisionIndex++;
+        }
+    }
+
+    for (const auto& entry : hashCollisions2) {
+        if (entry.second.size() > 1) {
+            if (currentCollisionIndex2 == randomIndex2) {
+                cout << "Losowa kolizja dla stringow 100 elementowych:" << endl;
+                cout << "Hash: " << entry.first << endl;
+                cout << "String:" << entry.second[1] << endl<<endl;
+                /* for (const auto& str : entry.second) {
+                     cout << str << endl;
+                 }*/
+            }
+            currentCollisionIndex2++;
+        }
+    }
+    // Dane o ilosci kolizji Adler32
+    int numCollisions3 = 0;
+    int numCollisions4 = 0;
+    for (const auto& entry : hashCollisions3) {
+        if (entry.second.size() > 1) {
+            numCollisions3++;
+        }
+    }
+
+    for (const auto& entry : hashCollisions4) {
+        if (entry.second.size() > 1) {
+            numCollisions4++;
+        }
+    }
+
+    cout << "Liczba kolizji dla stringow 8 elementowych przy uzyciu Adler32: " << numCollisions3 << endl;
+    cout << "Liczba kolizji dla stringow 100 elementowych przy uzyciu Adler32: " << numCollisions4 <<endl<<endl;
+
+
+    // Losowa kolizja Adler32
+    uniform_int_distribution<int> distribution3(0, numCollisions3 - 1);
+
+    int randomIndex3 = distribution3(generator);
+
+    uniform_int_distribution<int> distribution4(0, numCollisions4 - 1);
+    int randomIndex4 = distribution4(generator);
+
+    int currentCollisionIndex3 = 0;
+    int currentCollisionIndex4 = 0;
+
+    for (const auto& entry : hashCollisions3) {
+        if (entry.second.size() > 1) {
+            if (currentCollisionIndex3 == randomIndex3) {
+                cout << "Losowa kolizja dla stringow 8 elementowych:" << endl;
+                cout << "Hash: " << entry.first << endl;
+                cout << "String:" << entry.second[1] << endl<<endl;
+                /* for (const auto& str : entry.second) {
+                     cout << str << endl;
+                 }*/
+            }
+            currentCollisionIndex3++;
+        }
+    }
+
+    for (const auto& entry : hashCollisions4) {
+        if (entry.second.size() > 1) {
+            if (currentCollisionIndex4 == randomIndex4) {
+                cout << "Losowa kolizja dla stringow 100 elementowych:" << endl;
+                cout << "Hash: " << entry.first << endl;
+                cout << "String:" << entry.second[1] << endl<<endl;
+                /* for (const auto& str : entry.second) {
+                     cout << str << endl;
+                 }*/
+            }
+            currentCollisionIndex4++;
+        }
+    }
 
     return 0;
 }
@@ -138,25 +179,7 @@ int main()
 //        asciiCode[i] = static_cast<long>(str[i]);
 //    }
 //}
-void printRandomCollision(unordered_set<unsigned long>& collisionSet, unordered_map<unsigned long, string>& hashToStringMap)
-{
-    if (collisionSet.empty())
-    {
-        cout << "No collisions found." << endl;
-        return;
-    }
 
-    random_device rd;
-    mt19937 generator(rd());
-    uniform_int_distribution<size_t> distribution(0, collisionSet.size() - 1);
-
-    size_t randomIndex = distribution(generator);
-    auto it = collisionSet.begin();
-    advance(it, randomIndex);
-    unsigned long randomCollision = *it;
-
-    cout << "Random Collision: Hash = " << randomCollision << ", String = " << hashToStringMap[randomCollision] << endl;
-}
 string generateString(int length) {
     if (length <= 0) {
         return "";
